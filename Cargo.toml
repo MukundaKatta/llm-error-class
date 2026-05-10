@@ -1,0 +1,22 @@
+[package]
+name = "llm-error-class"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.74"
+description = "Classify LLM provider error responses (rate-limit, auth, server, context-window, content-policy, malformed). Anthropic, OpenAI, Google, AWS Bedrock. Zero deps."
+authors = ["Mukunda Rao Katta <mukunda.vjcs6@gmail.com>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/MukundaKatta/llm-error-class"
+homepage = "https://github.com/MukundaKatta/llm-error-class"
+documentation = "https://docs.rs/llm-error-class"
+readme = "README.md"
+keywords = ["llm", "error", "classify", "retry", "ai"]
+categories = ["api-bindings", "parsing"]
+exclude = [".github/*", "target/*"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"], optional = true }
+
+[features]
+default = []
+serde = ["dep:serde"]
