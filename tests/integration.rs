@@ -26,7 +26,8 @@ fn openai_context_window() {
 
 #[test]
 fn openai_insufficient_quota() {
-    let body = r#"{"error":{"code":"insufficient_quota","message":"You exceeded your current quota"}}"#;
+    let body =
+        r#"{"error":{"code":"insufficient_quota","message":"You exceeded your current quota"}}"#;
     assert_eq!(classify(429, body), ErrorClass::BillingQuota);
 }
 
@@ -50,7 +51,8 @@ fn bedrock_service_unavailable() {
 
 #[test]
 fn content_policy_block() {
-    let body = r#"{"error":{"code":"content_filter","message":"Response blocked by safety filter"}}"#;
+    let body =
+        r#"{"error":{"code":"content_filter","message":"Response blocked by safety filter"}}"#;
     assert_eq!(classify(400, body), ErrorClass::ContentPolicy);
 }
 
@@ -87,4 +89,28 @@ fn retriable_classes() {
 #[test]
 fn empty_body_unknown_status() {
     assert_eq!(classify(418, ""), ErrorClass::Unknown);
+}
+
+#[test]
+fn anthropic_overloaded_status_only() {
+    // Anthropic uses HTTP 529 for overloaded_error; with no body keywords,
+    // the status fallback must still classify it as Overloaded (retriable),
+    // not generic Server.
+    assert_eq!(classify(529, ""), ErrorClass::Overloaded);
+    assert_eq!(classify(529, "{}"), ErrorClass::Overloaded);
+    assert!(classify(529, "").is_retriable());
+}
+
+#[test]
+fn gateway_timeout_status_only() {
+    // 504 Gateway Timeout (e.g. Gemini DEADLINE_EXCEEDED with no "timeout"
+    // keyword in the body) should classify as Timeout, not generic Server.
+    assert_eq!(classify(504, ""), ErrorClass::Timeout);
+    assert_eq!(
+        classify(
+            504,
+            r#"{"error":{"status":"DEADLINE_EXCEEDED","message":"Deadline expired"}}"#
+        ),
+        ErrorClass::Timeout
+    );
 }

@@ -130,9 +130,11 @@ pub fn classify(status: u16, body: &str) -> ErrorClass {
         401 | 403 => ErrorClass::Auth,
         402 => ErrorClass::BillingQuota,
         404 => ErrorClass::NotFound,
-        408 => ErrorClass::Timeout,
+        408 | 504 => ErrorClass::Timeout,
         429 => ErrorClass::RateLimit,
-        503 => ErrorClass::Overloaded,
+        // 529 is Anthropic's dedicated `overloaded_error` status; 503 is the
+        // generic Service Unavailable. Both map to Overloaded.
+        503 | 529 => ErrorClass::Overloaded,
         500..=599 => ErrorClass::Server,
         400 => ErrorClass::Malformed,
         _ => ErrorClass::Unknown,
